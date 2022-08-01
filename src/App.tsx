@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import Tesseract from 'tesseract.js';
 import Dropzone from 'react-dropzone'
+import ReactLoading from 'react-loading';
 
 function App() {
   const [results, setResults] = useState<string[] | null>(null);
@@ -26,19 +27,21 @@ function App() {
   }
   return (
     <div className="App">
-      <Dropzone onDrop={onDrop}>
+      {results === null && progress === null && <Dropzone onDrop={onDrop}>
         {({getRootProps, getInputProps}) => (
           <div {...getRootProps()} id="dropzone">
             <input {...getInputProps()} />
             <p>Subime tu imagen con un CBU acá</p>
           </div>
         )}
-      </Dropzone>
-      {results === null && progress !== null && <p>Procesando</p>}
-      {results !== null && results.length === 0 && <p>No se encontraron CBUs</p>}
-      {results && results.length && <ul>
-        {results.map((r: string) => <li key={r}>{r}</li>)}
-      </ul>}
+      </Dropzone>}
+      {results === null && progress !== null && <div id="loading"><ReactLoading type="bars" color="#333" /></div>}
+      {results !== null && <div id="results">
+        {results.length === 0 && <p>No se encontraron CBUs</p>}
+        {results.length > 0 && <div>
+          <ul>{results.map((r: string) => <li key={r}>{r}</li>)}</ul>
+        </div>}
+      </div>}
     </div>
   );
 }

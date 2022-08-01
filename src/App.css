@@ -2,7 +2,8 @@ html,
 body,
 #root,
 .App,
-#dropzone {
+#dropzone,
+#results {
   margin: 0;
   padding: 0;
   width: 100vw;
@@ -25,4 +26,36 @@ body {
   height: calc(100vh - 20px);
   border: 5px dashed #ccc;
   border-radius: 25px;
+}
+
+#loading {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
+  width: calc(100vw - 20px);
+  height: calc(100vh - 20px);
+}
+
+#loading > div {
+  margin: 0 auto;
+}
+
+#results ul,
+#results ul li {
+  list-style: none;
+  padding: 0;
+}
+
+#results {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
+}
+
+#results > div {
+  display: flex;
+  justify-content: center;
+  align-content: center;
 }
