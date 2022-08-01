@@ -17,7 +17,6 @@ async function readImage(f: File) {
   return await Tesseract.recognize(
     f,
     'spa',
-    { logger: m => console.log(m) }
   ).then(({ data: { text } }) => findCBUsInText(text))
 }
 
