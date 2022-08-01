@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/leemeelcbu.com/static/css/main.f8dcee22.css",
-    "main.js": "/leemeelcbu.com/static/js/main.999bf1bb.js",
+    "main.css": "/leemeelcbu.com/static/css/main.ff2954cf.css",
+    "main.js": "/leemeelcbu.com/static/js/main.578b0b11.js",
     "static/js/787.50cea864.chunk.js": "/leemeelcbu.com/static/js/787.50cea864.chunk.js",
     "index.html": "/leemeelcbu.com/index.html",
-    "main.f8dcee22.css.map": "/leemeelcbu.com/static/css/main.f8dcee22.css.map",
-    "main.999bf1bb.js.map": "/leemeelcbu.com/static/js/main.999bf1bb.js.map",
+    "main.ff2954cf.css.map": "/leemeelcbu.com/static/css/main.ff2954cf.css.map",
+    "main.578b0b11.js.map": "/leemeelcbu.com/static/js/main.578b0b11.js.map",
     "787.50cea864.chunk.js.map": "/leemeelcbu.com/static/js/787.50cea864.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.f8dcee22.css",
-    "static/js/main.999bf1bb.js"
+    "static/css/main.ff2954cf.css",
+    "static/js/main.578b0b11.js"
   ]
 }
