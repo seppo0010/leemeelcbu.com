@@ -4,6 +4,7 @@ import Tesseract from 'tesseract.js';
 import Dropzone from 'react-dropzone'
 import ReactLoading from 'react-loading';
 import * as pdfjsLib from "pdfjs-dist";
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.worker.js`;
 
@@ -39,6 +40,7 @@ async function readPDF(f: File) {
 function App() {
   const [results, setResults] = useState<string[] | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
+  const [copied, setCopied] = useState('');
 
   const onDrop = (acceptedFiles: File[]) => {
     setResults(null);
@@ -66,7 +68,15 @@ function App() {
       {results !== null && <div id="results">
         {results.length === 0 && <p>No se encontraron CBUs</p>}
         {results.length > 0 && <div>
-          <ul>{results.map((r: string, i) => <li key={i}>{r}</li>)}</ul>
+          <ul>{results.map((r: string, i) => (
+            <li key={i}>
+              <p>{r}</p>
+              <CopyToClipboard text={r}
+                onCopy={() => setCopied(r)}>
+                <button>{r === copied ? 'Copiado' : 'Copiar'}</button>
+              </CopyToClipboard>
+            </li>
+          ))}</ul>
           <button onClick={() => { setResults(null); setProgress(null); }}>Volver a empezar</button>
         </div>}
       </div>}

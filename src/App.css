@@ -60,3 +60,19 @@ body {
   align-content: center;
   flex-direction: column;
 }
+
+#results p {
+  line-height: 200%;
+  margin: 0;
+  flex-grow: 1;
+}
+
+#results li {
+  width: 400px;
+  display: flex;
+}
+
+#results li button {
+  width: 120px;
+  height: 30px;
+}
