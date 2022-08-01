@@ -40,6 +40,7 @@ function App() {
         {results.length === 0 && <p>No se encontraron CBUs</p>}
         {results.length > 0 && <div>
           <ul>{results.map((r: string) => <li key={r}>{r}</li>)}</ul>
+          <button onClick={() => { setResults(null); setProgress(null); }}>Volver a empezar</button>
         </div>}
       </div>}
     </div>

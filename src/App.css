@@ -45,17 +45,18 @@ body {
 #results ul li {
   list-style: none;
   padding: 0;
+  margin: 6px 0;
 }
 
 #results {
   display: flex;
   justify-content: center;
   align-content: center;
-  flex-direction: column;
 }
 
 #results > div {
   display: flex;
   justify-content: center;
   align-content: center;
+  flex-direction: column;
 }
