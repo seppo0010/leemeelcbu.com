@@ -28,7 +28,7 @@ function App() {
     <div className="App">
       <Dropzone onDrop={onDrop}>
         {({getRootProps, getInputProps}) => (
-          <div {...getRootProps()}>
+          <div {...getRootProps()} id="dropzone">
             <input {...getInputProps()} />
             <p>Subime tu imagen con un CBU acá</p>
           </div>
