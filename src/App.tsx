@@ -96,9 +96,8 @@ function App() {
       </Dropzone>}
       {results === null && progress !== null && <div id="loading"><ReactLoading type="bars" color="#333" /></div>}
       {results !== null && <div id="results">
-        {results.length === 0 && <p>No se encontraron CBUs</p>}
-        {results.length > 0 && <div>
-          <ul>{results.map((r: string, i) => (
+        <div>
+          {results.length > 0 && <ul>{results.map((r: string, i) => (
             <li key={i}>
               <p>{r}</p>
               <CopyToClipboard text={r}
@@ -106,9 +105,10 @@ function App() {
                 <button>{r === copied ? 'Copiado' : 'Copiar'}</button>
               </CopyToClipboard>
             </li>
-          ))}</ul>
+          ))}</ul>}
+          {results.length === 0 && <div id="noresults"><p>No se encontraron CBUs</p></div>}
           <button onClick={() => { setResults(null); setProgress(null); }}>Volver a empezar</button>
-        </div>}
+        </div>
       </div>}
     </div>
   );

@@ -67,6 +67,11 @@ body {
   flex-grow: 1;
 }
 
+#results div#noresults {
+  width: 400px;
+  display: flex;
+}
+
 #results li {
   width: 400px;
   display: flex;
