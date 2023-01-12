@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Tesseract from 'tesseract.js';
 import Dropzone from 'react-dropzone'
@@ -8,12 +8,13 @@ import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.worker.js`;
 
-function findCBUsInText(text: string) {
+function findCBUsInText(text: string): string[] {
   return Array.from(text.matchAll(/[0-9\- ]+/g))
     .map((res) => res[0].replace(/\D/g,''))
     .filter((res) => res.length === 22)
 }
-async function readImage(f: File) {
+
+async function readImage(f: File): Promise<string[]> {
   if (f.type.split('/')[0] !== 'image') return [];
   return await Tesseract.recognize(
     f,
@@ -21,7 +22,7 @@ async function readImage(f: File) {
   ).then(({ data: { text } }) => findCBUsInText(text))
 }
 
-async function readPDF(f: File) {
+async function readPDF(f: File): Promise<string[]> {
   if (f.type !== 'application/pdf') return [];
   const loadingTask = pdfjsLib.getDocument(new Uint8Array(await f.arrayBuffer()));
   const pdf = await loadingTask.promise;
@@ -37,23 +38,52 @@ async function readPDF(f: File) {
   return cbus;
 }
 
+function fileListToFileArray(f?: FileList): File[] {
+  const files: File[] = [];
+  if (f !== undefined) {
+    for (let i = 0; i < f.length; i++) {
+      const item = f.item(i);
+      if (item !== null) {
+        files.push(item);
+      }
+    }
+  }
+  return files;
+}
+
 function App() {
   const [results, setResults] = useState<string[] | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [copied, setCopied] = useState('');
 
-  const onDrop = (acceptedFiles: File[]) => {
+  const readContent = async (acceptedFiles: File[], text: string) => {
     setResults(null);
     setProgress(0);
-    acceptedFiles.forEach(async (f) => {
+    const results = await Promise.all(acceptedFiles.map(async (f) => {
       const [resultsPDF, resultsImage] = await Promise.allSettled([readPDF(f), readImage(f)]);
-      setResults([
+      return [
         ...(resultsPDF.status === 'fulfilled' ? resultsPDF.value : []),
         ...(resultsImage.status === 'fulfilled' ? resultsImage.value : []),
-      ]);
-      setProgress(1);
-    })
+      ];
+    }));
+    setResults([...results.flat(), ...(findCBUsInText(text ?? ''))])
+    setProgress(1);
   }
+  const onDrop = (acceptedFiles: File[]) => readContent(acceptedFiles, '')
+
+  useEffect(() => {
+    const onPaste = (event: unknown) => ((event: ClipboardEvent) => {
+      readContent(
+        fileListToFileArray(event.clipboardData?.files),
+        event.clipboardData?.getData('text/plain') ?? '',
+      );
+    })(event as ClipboardEvent)
+    window.addEventListener('paste', onPaste);
+    return () => {
+      window.removeEventListener('paste', onPaste);
+    }
+  }, []);
+
   return (
     <div className="App">
       {results === null && progress === null && <Dropzone onDrop={onDrop}>
