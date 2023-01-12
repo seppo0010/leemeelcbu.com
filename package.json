@@ -1,7 +1,7 @@
 {
   "name": "leemeelcbu.com",
   "version": "0.1.0",
-  "homepage": "https://seppo0010.github.io/leemeelcbu.com",
+  "homepage": "https://469d-152-170-89-33.ngrok.io",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
@@ -58,6 +58,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-react": "^7.32.0",
     "gh-pages": "^4.0.0",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "workerize-loader": "^2.0.2"
   }
 }
