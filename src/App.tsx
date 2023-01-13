@@ -1,55 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import './App.css'
-import Tesseract from 'tesseract.js'
 import Dropzone from 'react-dropzone'
 import ReactLoading from 'react-loading'
-import * as pdfjsLib from 'pdfjs-dist'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = '//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.worker.js'
-
-function findCBUsInText (text: string): string[] {
-  return Array.from(text.matchAll(/[0-9\- ]+/g))
-    .map((res) => res[0].replace(/\D/g, ''))
-    .filter((res) => res.length === 22)
-}
-
-async function readImage (f: File): Promise<string[]> {
-  if (f.type.split('/')[0] !== 'image') return []
-  return await Tesseract.recognize(
-    f,
-    'spa'
-  ).then(({ data: { text } }) => findCBUsInText(text))
-}
-
-async function readPDF (f: File): Promise<string[]> {
-  if (f.type !== 'application/pdf') return []
-  const loadingTask = pdfjsLib.getDocument(new Uint8Array(await f.arrayBuffer()))
-  const pdf = await loadingTask.promise
-  let cbus: string[] = []
-
-  for (let i = 0; i < pdf.numPages; i++) {
-    const page = await pdf.getPage(i + 1)
-    const texts = await page.getTextContent()
-    for (const item of texts.items) {
-      cbus = [...cbus, ...findCBUsInText((item as { str?: string }).str ?? '')]
-    }
-  }
-  return cbus
-}
-
-function fileListToFileArray (f?: FileList): File[] {
-  const files: File[] = []
-  if (f !== undefined) {
-    for (let i = 0; i < f.length; i++) {
-      const item = f.item(i)
-      if (item !== null) {
-        files.push(item)
-      }
-    }
-  }
-  return files
-}
+import {
+  findCBUsInText,
+  readImage,
+  readPDF,
+  fileListToFileArray
+} from './cbu'
 
 function App (): JSX.Element {
   const [results, setResults] = useState<string[] | null>(null)
@@ -94,6 +53,9 @@ function App (): JSX.Element {
     }
   }, [])
 
+  const requestPermissions = (): void => {
+    requestNotificationPermission().catch((e) => { console.error({ e }) })
+  }
   return (
     <div className="App">
       {!error && results === null && progress === null && <Dropzone onDrop={onDrop}>
@@ -118,11 +80,18 @@ function App (): JSX.Element {
           ))}</ul>}
           {!error && results !== null && results.length === 0 && <div id="noresults"><p>No se encontraron CBUs</p></div>}
           {error && <div id="noresults"><p>Algo salió mal...</p></div>}
-          <button onClick={() => { setResults(null); setProgress(null) }}>Volver a empezar</button>
+          <button onClick={() => { requestPermissions(); setResults(null); setProgress(null) }}>Volver a empezar</button>
         </div>
       </div>}
     </div>
   )
+}
+
+const requestNotificationPermission = async (): Promise<void> => {
+  const permission = await window.Notification.requestPermission()
+  if (permission !== 'granted') {
+    throw new Error('Permission not granted for Notification')
+  }
 }
 
 export default App
