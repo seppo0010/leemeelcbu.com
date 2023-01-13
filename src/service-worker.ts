@@ -1,6 +1,7 @@
 /* eslint-disable no-restricted-globals, @typescript-eslint/triple-slash-reference */
 /// <reference lib="webworker" />
 
+import './fake-document'
 import { clientsClaim, RouteHandlerCallbackOptions } from 'workbox-core'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching'
@@ -8,8 +9,7 @@ import { registerRoute } from 'workbox-routing'
 import { StaleWhileRevalidate } from 'workbox-strategies'
 import {
   findCBUsInText,
-  readBlob,
-  fileListToFileArray
+  readBlob
 } from './cbu'
 
 declare const self: ServiceWorkerGlobalScope
@@ -40,7 +40,7 @@ registerRoute(
 )
 
 registerRoute(
-  ({ url }) => url.origin === self.location.origin && url.pathname.endsWith('.png'),
+  ({ url }: { url: URL }) => url.origin === self.location.origin && url.pathname.endsWith('.png'),
   new StaleWhileRevalidate({
     cacheName: 'images',
     plugins: [
@@ -50,24 +50,26 @@ registerRoute(
 )
 
 registerRoute(
-  ({ url }) => url.origin === self.location.origin && url.pathname === '/income',
+  ({ url }: { url: URL }) => url.origin === self.location.origin && url.pathname === '/income',
   async (options: RouteHandlerCallbackOptions) => {
     const formData = await options.request.formData()
-    Array.from(formData.values()).forEach(async (value: string | Blob) => {
+    Array.from(formData.values()).forEach((value: string | Blob) => {
       if (typeof value === 'string') {
-        (await findCBUsInText(value)).forEach((cbu: string) => {
+        findCBUsInText(value).forEach((cbu: string) => {
           self.registration.showNotification('¡CBU leido!', {
             body: cbu,
             data: JSON.stringify({ cbu })
-          }).catch((err) => { console.error({ err }) })
+          }).catch((err: unknown) => { console.error({ err }) })
         })
       } else {
-        (await readBlob(value)).forEach((cbu: string) => {
-          self.registration.showNotification('¡CBU leido!', {
-            body: cbu,
-            data: JSON.stringify({ cbu })
-          }).catch((err) => { console.error({ err }) })
-        })
+        readBlob(value).then((cbus: string[]) => {
+          cbus.forEach((cbu: string) => {
+            self.registration.showNotification('¡CBU leido!', {
+              body: cbu,
+              data: JSON.stringify({ cbu })
+            }).catch((err: unknown) => { console.error({ err }) })
+          })
+        }).catch((err: unknown) => { console.error({ err }) })
       }
     })
     return new Response('')
@@ -81,6 +83,6 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
   if (self.clients.openWindow !== undefined) {
-    self.clients.openWindow(`/?${cbu}`).catch((err) => { console.error({ err }) })
+    self.clients.openWindow(`/?${cbu}`).catch((err: unknown) => { console.error({ err }) })
   }
 })
