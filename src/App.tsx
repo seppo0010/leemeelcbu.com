@@ -76,7 +76,9 @@ function App (): JSX.Element {
         {({ getRootProps, getInputProps }) => (
           <div {...getRootProps()} id="dropzone">
             <input {...getInputProps()} />
-            <p>Subime tu imagen con un CBU acá</p>
+            <p>
+              Subime tu imagen con un CBU acá
+            </p>
           </div>
         )}
       </Dropzone>}

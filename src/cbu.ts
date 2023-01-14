@@ -3,6 +3,7 @@ import * as pdfjsLib from 'pdfjs-dist'
 pdfjsLib.GlobalWorkerOptions.workerSrc = '//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.worker.js'
 
 export function findCBUsInText (text: string): string[] {
+  console.log({ text })
   return Array.from(text.matchAll(/[0-9\- ]+/g))
     .map((res) => res[0].replace(/\D/g, ''))
     .filter((res) => res.length === 22)
@@ -10,6 +11,8 @@ export function findCBUsInText (text: string): string[] {
 
 export async function readImage (f: File): Promise<string[]> {
   if (f.type.split('/')[0] !== 'image') return []
+  console.log({ f, type: 'image' })
+  console.log('reading image', { f })
   return await Tesseract.recognize(
     f,
     'spa'
@@ -18,6 +21,7 @@ export async function readImage (f: File): Promise<string[]> {
 
 export async function readPDF (f: File): Promise<string[]> {
   if (f.type !== 'application/pdf') return []
+  console.log({ f, type: 'pdf' })
   const loadingTask = pdfjsLib.getDocument(new Uint8Array(await f.arrayBuffer()))
   const pdf = await loadingTask.promise
   let cbus: string[] = []
@@ -32,10 +36,10 @@ export async function readPDF (f: File): Promise<string[]> {
   return cbus
 }
 
-export async function readBlob (blob: Blob): Promise<string[]> {
+export async function readFile (file: File): Promise<string[]> {
   return (await Promise.all([
-    readImage(new File([blob], 'image/png')),
-    readPDF(new File([blob], 'file.pdf'))
+    readImage(file),
+    readPDF(file)
   ])).flat()
 }
 
