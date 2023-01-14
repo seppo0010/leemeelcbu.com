@@ -49,27 +49,19 @@ registerRoute(
   })
 )
 
-const notifyError = (error: string): void => {
-  self.clients.matchAll().then((clientList) => {
-    for (const client of clientList) {
-      client.postMessage({ error })
-    }
-  }).catch((err: unknown) => { console.error({ err }) })
-}
-
 const notifyCBUs = (cbus: string[]): void => {
+  if (cbus.length === 0) {
+    self.registration.showNotification('Ningún CBU leído :(').catch((err: unknown) => { console.error({ err }) })
+    return
+  }
   cbus.forEach((cbu: string) => {
     self.registration.showNotification('¡CBU leido!', {
       body: cbu,
       data: JSON.stringify({ cbu })
     }).catch((err: unknown) => { console.error({ err }) })
   })
-  self.clients.matchAll().then((clientList) => {
-    for (const client of clientList) {
-      client.postMessage({ cbus })
-    }
-  }).catch((err: unknown) => { console.error({ err }) })
 }
+
 registerRoute(
   ({ url }: { url: URL }) => url.origin === self.location.origin && url.pathname === '/income',
   async (options: RouteHandlerCallbackOptions) => {
@@ -79,8 +71,8 @@ registerRoute(
         return typeof value === 'string' ? findCBUsInText(value) : await readBlob(value)
       }))).flat()
       notifyCBUs(cbus)
-    })().catch((err: Error) => { notifyError(err.message) })
-    return Response.redirect('/?loading=true')
+    })().catch((err: Error) => { console.error({ err }) })
+    return Response.redirect('/')
   },
   'POST'
 )
