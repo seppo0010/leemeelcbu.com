@@ -2,9 +2,46 @@
   "short_name": "Leeme el CBU",
   "name": "Leeme el CBU",
   "icons": [
+    {
+      "src": "icon48x48.png",
+      "type": "image/png",
+      "sizes": "48x48"
+    },
+    {
+      "src": "icon256x256.png",
+      "type": "image/png",
+      "sizes": "256x256"
+    },
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "background_color": "#ffffff",
+  "scope": "/",
+  "share_target": {
+    "action": "/income",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "text",
+          "accept": ["text/plain", ".txt"]
+        },
+        {
+          "name": "png",
+          "accept": ["image/png", ".png"]
+        },
+        {
+          "name": "jpg",
+          "accept": ["image/jpeg", ".jpg"]
+        }
+      ]
+    }
+  }
 }
