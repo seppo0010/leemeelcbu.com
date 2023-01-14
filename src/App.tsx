@@ -15,6 +15,48 @@ function App (): JSX.Element {
   const [progress, setProgress] = useState<number | null>(null)
   const [copied, setCopied] = useState('')
   const [error, setError] = useState(false)
+  const [hash, setHash] = useState('')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search.substring(1))
+    if (params.get('loading') === 'true') {
+      setProgress(0)
+    }
+    const cbu = params.get('cbu')
+    if (cbu !== null) {
+      setProgress(1)
+      setResults(findCBUsInText(cbu))
+    }
+  }, [])
+
+  useEffect(() => {
+    const eventListener = (event: MessageEvent<{ cbus?: string[], error?: string }>): void => {
+      const { cbus, error } = event.data
+      if (cbus !== undefined) {
+        setResults(cbus)
+      }
+      if (error !== undefined) {
+        console.error({ error })
+        setError(true)
+      }
+      setProgress(1)
+    }
+    navigator.serviceWorker.addEventListener('message', eventListener)
+    return () => { navigator.serviceWorker.removeEventListener('message', eventListener) }
+  }, [])
+
+  useEffect(() => {
+    const script = document.getElementsByTagName('script')
+    if (script.length === 0) return
+    const src = script[0].getAttribute('src')
+    if (src === null) return
+    const h = src.match(/\.([a-f0-9]+)\./)
+    if (h !== null) {
+      setHash(h[1])
+    } else {
+      setHash('dev')
+    }
+  }, [])
 
   const readContent = (acceptedFiles: File[], text: string): void => {
     (async (): Promise<void> => {
@@ -83,6 +125,7 @@ function App (): JSX.Element {
           <button onClick={() => { requestPermissions(); setResults(null); setProgress(null) }}>Volver a empezar</button>
         </div>
       </div>}
+      {hash !== '' && <div id="hash">version {hash}</div>}
     </div>
   )
 }

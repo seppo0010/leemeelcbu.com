@@ -49,30 +49,38 @@ registerRoute(
   })
 )
 
+const notifyError = (error: string): void => {
+  self.clients.matchAll().then((clientList) => {
+    for (const client of clientList) {
+      client.postMessage({ error })
+    }
+  }).catch((err: unknown) => { console.error({ err }) })
+}
+
+const notifyCBUs = (cbus: string[]): void => {
+  cbus.forEach((cbu: string) => {
+    self.registration.showNotification('¡CBU leido!', {
+      body: cbu,
+      data: JSON.stringify({ cbu })
+    }).catch((err: unknown) => { console.error({ err }) })
+  })
+  self.clients.matchAll().then((clientList) => {
+    for (const client of clientList) {
+      client.postMessage({ cbus })
+    }
+  }).catch((err: unknown) => { console.error({ err }) })
+}
 registerRoute(
   ({ url }: { url: URL }) => url.origin === self.location.origin && url.pathname === '/income',
   async (options: RouteHandlerCallbackOptions) => {
-    const formData = await options.request.formData()
-    Array.from(formData.values()).forEach((value: string | Blob) => {
-      if (typeof value === 'string') {
-        findCBUsInText(value).forEach((cbu: string) => {
-          self.registration.showNotification('¡CBU leido!', {
-            body: cbu,
-            data: JSON.stringify({ cbu })
-          }).catch((err: unknown) => { console.error({ err }) })
-        })
-      } else {
-        readBlob(value).then((cbus: string[]) => {
-          cbus.forEach((cbu: string) => {
-            self.registration.showNotification('¡CBU leido!', {
-              body: cbu,
-              data: JSON.stringify({ cbu })
-            }).catch((err: unknown) => { console.error({ err }) })
-          })
-        }).catch((err: unknown) => { console.error({ err }) })
-      }
-    })
-    return new Response('')
+    (async () => {
+      const formData = await options.request.formData()
+      const cbus: string[] = (await Promise.all(Array.from(formData.values()).map(async (value: string | Blob) => {
+        return typeof value === 'string' ? findCBUsInText(value) : await readBlob(value)
+      }))).flat()
+      notifyCBUs(cbus)
+    })().catch((err: Error) => { notifyError(err.message) })
+    return Response.redirect('/?loading=true')
   },
   'POST'
 )
@@ -83,6 +91,6 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
   if (self.clients.openWindow !== undefined) {
-    self.clients.openWindow(`/?${cbu}`).catch((err: unknown) => { console.error({ err }) })
+    self.clients.openWindow(`/?cbu=${cbu}`).catch((err: unknown) => { console.error({ err }) })
   }
 })
