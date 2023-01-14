@@ -18,22 +18,18 @@ function App (): JSX.Element {
   const [hash, setHash] = useState('')
 
   useEffect(() => {
-    navigator.serviceWorker.ready.then((): void => {
-      (async () => {
-        const req = await fetch('/income')
-        const { pendingFiles, pendingTexts }: { pendingFiles: string[], pendingTexts: string[] } = await req.json()
-        if (pendingFiles.length === 0 && pendingTexts.length === 0) return
-        setResults(null)
-        setProgress(0)
-        const acceptedFiles = await Promise.all(pendingFiles.map(async (f) => {
-          const req = await fetch(`/income/${f}`)
-          return new File([await req.blob()], f, { type: req.headers.get('content-type') ?? '' })
-        }))
-        readContent(acceptedFiles, pendingTexts.join('\n'))
-      })().catch((err: unknown) => {
-        setError(true)
-        console.error({ err })
-      })
+    navigator.serviceWorker.ready.then(async (): Promise<void> => {
+      const req = await fetch('/income')
+      if (req.headers.get('content-type') !== 'application/json') return
+      const { pendingFiles, pendingTexts }: { pendingFiles: string[], pendingTexts: string[] } = await req.json()
+      if (pendingFiles.length === 0 && pendingTexts.length === 0) return
+      setResults(null)
+      setProgress(0)
+      const acceptedFiles = await Promise.all(pendingFiles.map(async (f) => {
+        const req = await fetch(`/income/${f}`)
+        return new File([await req.blob()], f, { type: req.headers.get('content-type') ?? '' })
+      }))
+      readContent(acceptedFiles, pendingTexts.join('\n'))
     }).catch((err: unknown) => {
       setError(true)
       console.error({ err })

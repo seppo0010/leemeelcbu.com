@@ -68,7 +68,7 @@ registerRoute(
     return new Response(JSON.stringify({
       pendingTexts,
       pendingFiles: Object.keys(pendingFiles)
-    }))
+    }), { headers: { 'content-type': 'application/json' } })
   }
 )
 
