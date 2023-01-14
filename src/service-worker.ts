@@ -45,12 +45,44 @@ registerRoute(
   })
 )
 
+const pendingFiles: Record<string, {
+  file: File
+}> = {}
+const pendingTexts: string[] = []
+
+registerRoute(
+  ({ url }: { url: URL }) => url.origin === self.location.origin && url.pathname.startsWith('/income/'),
+  async (options: RouteHandlerCallbackOptions) => {
+    const path = options.url.pathname.substring('/income/'.length)
+    const { file } = pendingFiles[path]
+    if (file === undefined) {
+      return new Response('not found', { status: 404 })
+    }
+    return new Response(file, { headers: { 'content-type': file.type } })
+  }
+)
+
+registerRoute(
+  ({ url }: { url: URL }) => url.origin === self.location.origin && url.pathname === '/income',
+  async (options: RouteHandlerCallbackOptions) => {
+    return new Response(JSON.stringify({
+      pendingTexts,
+      pendingFiles: Object.keys(pendingFiles)
+    }))
+  }
+)
+
 registerRoute(
   ({ url }: { url: URL }) => url.origin === self.location.origin && url.pathname === '/income',
   async (options: RouteHandlerCallbackOptions) => {
     const formData = await options.request.formData()
-    const files: (File | string)[] = Array.from(formData.values())
-    console.log({ files })
+    for (const [key, value] of Array.from(formData.entries())) {
+      if (typeof value === 'string') {
+        pendingTexts.push(value)
+      } else {
+        pendingFiles[key] = { file: value }
+      }
+    }
     return Response.redirect('/')
   },
   'POST'

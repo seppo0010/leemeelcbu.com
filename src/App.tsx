@@ -18,6 +18,29 @@ function App (): JSX.Element {
   const [hash, setHash] = useState('')
 
   useEffect(() => {
+    navigator.serviceWorker.ready.then((): void => {
+      (async () => {
+        const req = await fetch('/income')
+        const { pendingFiles, pendingTexts }: { pendingFiles: string[], pendingTexts: string[] } = await req.json()
+        if (pendingFiles.length === 0 && pendingTexts.length === 0) return
+        setResults(null)
+        setProgress(0)
+        const acceptedFiles = await Promise.all(pendingFiles.map(async (f) => {
+          const req = await fetch(`/income/${f}`)
+          return new File([await req.blob()], f, { type: req.headers.get('content-type') ?? '' })
+        }))
+        readContent(acceptedFiles, pendingTexts.join('\n'))
+      })().catch((err: unknown) => {
+        setError(true)
+        console.error({ err })
+      })
+    }).catch((err: unknown) => {
+      setError(true)
+      console.error({ err })
+    })
+  }, [])
+
+  useEffect(() => {
     const script = document.getElementsByTagName('script')
     if (script.length === 0) return
     const src = script[0].getAttribute('src')
@@ -67,9 +90,6 @@ function App (): JSX.Element {
     }
   }, [])
 
-  const requestPermissions = (): void => {
-    requestNotificationPermission().catch((e) => { console.error({ e }) })
-  }
   return (
     <div className="App">
       {!error && results === null && progress === null && <Dropzone onDrop={onDrop}>
@@ -96,19 +116,12 @@ function App (): JSX.Element {
           ))}</ul>}
           {!error && results !== null && results.length === 0 && <div id="noresults"><p>No se encontraron CBUs</p></div>}
           {error && <div id="noresults"><p>Algo salió mal...</p></div>}
-          <button onClick={() => { requestPermissions(); setResults(null); setProgress(null) }}>Volver a empezar</button>
+          <button onClick={() => { setResults(null); setProgress(null) }}>Volver a empezar</button>
         </div>
       </div>}
       {hash !== '' && <div id="hash">version {hash}</div>}
     </div>
   )
-}
-
-const requestNotificationPermission = async (): Promise<void> => {
-  const permission = await window.Notification.requestPermission()
-  if (permission !== 'granted') {
-    throw new Error('Permission not granted for Notification')
-  }
 }
 
 export default App
